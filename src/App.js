@@ -2,7 +2,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import React, { Component } from "react";
 import uuid from "react-uuid";
-import { TransitionGroup } from "react-transition-group";
+import { CSSTransitionGroup } from "react-transition-group";
 
 class App extends Component {
     render() {
@@ -19,7 +19,7 @@ class App extends Component {
                         onKeyUp={this.addToDo}
                         ref={this.todoInput}
                     />
-                    <TransitionGroup
+                    <CSSTransitionGroup
                         transitionName="fade"
                         transitionEnterTimeout={300}
                         transitionLeaveTimeout={300}
@@ -88,7 +88,7 @@ class App extends Component {
                                 </div>
                             </div>
                         ))}
-                    </TransitionGroup>
+                    </CSSTransitionGroup>
 
                     <div className="extra-container">
                         <div>
@@ -138,7 +138,7 @@ class App extends Component {
                             </button>
                         </div>
 
-                        <TransitionGroup
+                        <CSSTransitionGroup
                             transitionName="fade"
                             transitionEnterTimeout={300}
                             transitionLeaveTimeout={300}
@@ -154,7 +154,7 @@ class App extends Component {
                                     </button>
                                 </div>
                             )}
-                        </TransitionGroup>
+                        </CSSTransitionGroup>
                     </div>
                 </div>
                 {/* To do container end */}
