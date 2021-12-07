@@ -1,342 +1,352 @@
 import logo from "./logo.svg";
 import "./App.css";
 import React, { Component } from "react";
-import uuid from 'react-uuid';
-
+import uuid from "react-uuid";
+import { TransitionGroup } from "react-transition-group";
 
 class App extends Component {
-  render(){
-    return(
-      <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-            </header>
-            <div className="Todo-container">
-                <input
-                    type="text"
-                    className="todo-input"
-                    placeholder="What needs to be done!"
-                    onKeyUp={this.addToDo}
-                    ref={this.todoInput}
-                    
-                />
-                {this.todosFiltered().map((todo, index) => 
-                  
-                
+    render() {
+        return (
+            <div className="App">
+                <header className="App-header">
+                    <img src={logo} className="App-logo" alt="logo" />
+                </header>
+                <div className="Todo-container">
+                    <input
+                        type="text"
+                        className="todo-input"
+                        placeholder="What needs to be done!"
+                        onKeyUp={this.addToDo}
+                        ref={this.todoInput}
+                    />
+                    <TransitionGroup
+                        transitionName="fade"
+                        transitionEnterTimeout={300}
+                        transitionLeaveTimeout={300}
+                    >
+                        {this.todosFiltered().map((todo, index) => (
+                            <div className="todo-item" key={todo.id}>
+                                <div className="todo-item-left">
+                                    <input
+                                        type="checkbox"
+                                        onChange={() => this.checkToDo(todo.id)}
+                                        checked={todo.completed}
+                                    />
 
-                <div className="todo-item" key={todo.id}>
-                    <div className="todo-item-left">
-                        <input type="checkbox" onChange={() => this.checkToDo(todo.id)} checked={todo.completed}/>
+                                    {!todo.editing && (
+                                        <div
+                                            className={`todo-item-label
+                          ${todo.completed ? `completed` : ``} `}
+                                            onDoubleClick={() =>
+                                                this.editTodo(todo, index)
+                                            }
+                                        >
+                                            {todo.title}
+                                        </div>
+                                    )}
 
-                        {!todo.editing &&
-                        <div className={
-                          `todo-item-label
-                          ${todo.completed ? `completed` : ``} `
-                        } 
-                        onDoubleClick={() => this.editTodo(todo, index)}
-                        
-                        >{todo.title}</div>
+                                    {todo.editing && (
+                                        <input
+                                            type="text"
+                                            className="todo-item-edit"
+                                            defaultValue={todo.title}
+                                            autoFocus
+                                            onBlur={(event) =>
+                                                this.doneEdit(
+                                                    todo,
+                                                    index,
+                                                    event
+                                                )
+                                            }
+                                            onKeyUp={(event) => {
+                                                if (event.key === "Enter") {
+                                                    this.doneEdit(
+                                                        todo,
+                                                        index,
+                                                        event
+                                                    );
+                                                } else if (
+                                                    event.key === "Escape"
+                                                ) {
+                                                    this.cancelEdit(
+                                                        todo,
+                                                        index,
+                                                        event
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                </div>
 
-                      }
+                                <div
+                                    className="remove-item"
+                                    onClick={() => this.deleteTodo(todo.id)}
+                                >
+                                    {" "}
+                                    &times;{" "}
+                                </div>
+                            </div>
+                        ))}
+                    </TransitionGroup>
 
-                      { todo.editing &&
-
-                        <input 
-                          type="text" 
-                          className="todo-item-edit" 
-                          defaultValue={todo.title} 
-                          autoFocus 
-                          onBlur={(event) => this.doneEdit(todo, index, event)}
-                          onKeyUp={(event) => {
-                            if(event.key === 'Enter'){
-                              this.doneEdit(todo, index, event);
-                            }
-                            else if(event.key === 'Escape'){
-                              this.cancelEdit(todo, index, event);
-                            }
-                          }
-                            
-                          }
-                        />
-
-                      }
-                        
+                    <div className="extra-container">
+                        <div>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={!this.anyRemaining()}
+                                    onChange={this.checkAll}
+                                />{" "}
+                                Check All
+                            </label>
+                        </div>
+                        <div> {this.remaining()} items left </div>
                     </div>
 
-                    <div className="remove-item" onClick={ () => this.deleteTodo(todo.id) }  > &times; </div>
+                    <div className="extra-container">
+                        <div>
+                            <button
+                                onClick={() => this.updateFilter("all")}
+                                className={
+                                    this.state.filter === "all" ? "active" : ""
+                                }
+                            >
+                                All
+                            </button>
+
+                            <button
+                                onClick={() => this.updateFilter("active")}
+                                className={
+                                    this.state.filter === "active"
+                                        ? "active"
+                                        : ""
+                                }
+                            >
+                                Active
+                            </button>
+
+                            <button
+                                onClick={() => this.updateFilter("completed")}
+                                className={
+                                    this.state.filter === "completed"
+                                        ? "active"
+                                        : ""
+                                }
+                            >
+                                Completed
+                            </button>
+                        </div>
+
+                        <TransitionGroup
+                            transitionName="fade"
+                            transitionEnterTimeout={300}
+                            transitionLeaveTimeout={300}
+                        >
+                            {this.todoCompletedCount() > 0 && (
+                                <div>
+                                    <button
+                                        onClick={(event) =>
+                                            this.clearCompleted(event)
+                                        }
+                                    >
+                                        Clear Completed
+                                    </button>
+                                </div>
+                            )}
+                        </TransitionGroup>
+                    </div>
                 </div>
-                )}
-
-                <div className="extra-container">
-                    <div>
-                        <label>
-                            <input type="checkbox" checked={!this.anyRemaining()} onChange={this.checkAll}/> Check All
-                        </label>
-                    </div>
-                    <div> {this.remaining()} items left </div>
-                </div>
-
-                <div className="extra-container">
-                    <div>
-                        <button  
-                          onClick={() => this.updateFilter('all')} 
-                          className={this.state.filter === 'all' ? 'active' : ''}
-                          >All</button>
-
-                        <button  
-                          onClick={() => this.updateFilter('active')} 
-                          className={this.state.filter === 'active' ? 'active' : ''}
-                        >Active</button>
-
-                        <button                           
-                         onClick={() => this.updateFilter('completed')} 
-                         className={this.state.filter === 'completed' ? 'active' : ''}
-                        >Completed</button>
-                    </div>
-
-                    <div>
-                        <button
-                          onClick={(event) => this.clearCompleted(event)}
-                        >Clear Completed</button>
-                    </div>
-                </div>
+                {/* To do container end */}
             </div>
-            {/* To do container end */}
-        </div>
-    );
-  }
+        );
+    }
 
-  todoInput = React.createRef();
+    todoInput = React.createRef();
 
-  state = {
-    filter : 'all',
-    beforeEditCache : '',
-    todos : [
-      {
-        'id': uuid(),
-        'title' : 'Finish React Screencast',
-        'completed' : false,
-        'editing' : false
-      },
-      {
-        'id': uuid(),
-        'title' : 'Take over world',
-        'completed' : false,
-        'editing' : false
-      },
-    ]
-  }
+    state = {
+        newTodo: "",
+        filter: "all",
+        beforeEditCache: "",
+        todos: [
+            {
+                id: uuid(),
+                title: "Finish React Screencast",
+                completed: false,
+                editing: false,
+            },
+            {
+                id: uuid(),
+                title: "Take over world",
+                completed: false,
+                editing: false,
+            },
+        ],
+    };
 
-  addToDo = (event) => {
-    event.preventDefault();
+    addToDo = (event) => {
+        event.preventDefault();
 
-    if(event.key === "Enter"){
-      const todoInput = this.todoInput.current.value;   
-      
-      if(todoInput.trim().length  === 0){
-        return;
-      }
-      
-      this.setState((preState, props) => {
-        let vartodos = preState.todos;
-        
-        vartodos.push({
-          "id" : uuid(),
-          "title" : todoInput,
-          "completed" : false,
-          "editing" : false
+        if (event.key === "Enter") {
+            const todoInput = this.todoInput.current.value;
+
+            if (todoInput.trim().length === 0) {
+                return;
+            }
+
+            this.setState((preState, props) => {
+                let vartodos = preState.todos;
+
+                vartodos.push({
+                    id: uuid(),
+                    title: todoInput,
+                    completed: false,
+                    editing: false,
+                });
+
+                return { todos: vartodos };
+            });
+
+            this.todoInput.current.value = "";
+        }
+    };
+
+    deleteTodo = (id) => {
+        this.setState((preState, props) => {
+            let vartodos = preState.todos;
+
+            vartodos = vartodos.filter((todo) => todo.id !== id);
+
+            return { todos: vartodos };
         });
+    };
 
-        return { todos : vartodos };
+    checkToDo = (id) => {
+        this.setState((preState, props) => {
+            let varTodos = preState.todos;
 
-      });
+            varTodos = varTodos.map((todo) => {
+                if (todo.id === id) {
+                    todo.completed = !todo.completed;
+                }
+                return todo;
+            });
 
-      this.todoInput.current.value = '';    
-      
-      
-      
-    }
+            return { todos: varTodos };
+        });
+    };
 
-  }
+    checkAll = (event) => {
+        event.persist();
 
+        this.setState((prevState, props) => {
+            let todos = prevState.todos;
 
-  deleteTodo = (id) => {    
+            todos.forEach((todo) => (todo.completed = event.target.checked));
 
-    this.setState((preState, props) => {
-      let vartodos = preState.todos;
-      
-      vartodos = vartodos.filter(todo => todo.id !== id);
-      
-      
+            return { todos };
+        });
+    };
 
-      return { todos : vartodos };
-    });
-  }
+    updateFilter = (filter) => {
+        this.setState({ filter });
+    };
 
-  checkToDo = (id) => {
-
-    this.setState((preState, props) => {
-      let varTodos = preState.todos;
-
-      varTodos = varTodos.map(todo => {
-        if(todo.id === id){
-          todo.completed = !todo.completed;
+    todosFiltered = () => {
+        if (this.state.filter === "all") {
+            return this.state.todos;
+        } else if (this.state.filter === "active") {
+            return this.state.todos.filter((todo) => !todo.completed);
+        } else if (this.state.filter === "completed") {
+            return this.state.todos.filter((todo) => todo.completed);
         }
-        return todo;
-      });
 
-      return { todos : varTodos };
+        return this.state.todos;
+    };
 
+    remaining = () => {
+        return this.state.todos.filter((todo) => !todo.completed).length;
+    };
 
-    });
-  }
+    anyRemaining = () => {
+        return this.remaining() !== 0;
+    };
 
-  checkAll = (event) => {
+    editTodo = (paramTodo, index) => {
+        this.setState((prevState, props) => {
+            let varTodos = prevState.todos;
 
-    event.persist();
+            varTodos.map((todo) => {
+                if (todo === paramTodo) {
+                    todo.editing = true;
+                }
 
-    this.setState((prevState, props) => {
-      let todos = prevState.todos;
+                return todo;
+            });
 
-      todos.forEach((todo) => todo.completed = event.target.checked);
+            return { todos: varTodos };
+        });
+    };
 
-      return { todos };
-    });
-    
+    doneEdit = (paramTodo, index, event) => {
+        event.persist();
 
+        this.setState((prevState, props) => {
+            let varTodos = prevState.todos;
 
+            varTodos.map((todo) => {
+                if (todo === paramTodo) {
+                    todo.editing = false;
+                    prevState.beforeEditCache = todo.title;
 
-  }
+                    if (event.target.value.trim().length === 0) {
+                        todo.title = prevState.beforeEditCache;
+                    } else {
+                        todo.title = event.target.value;
+                    }
+                    prevState.beforeEditCache = todo.title;
+                }
 
-  updateFilter = filter => {
-    this.setState({ filter });
-  }
+                return todo;
+            });
 
-  todosFiltered = () => {
-    
+            return { todos: varTodos };
+        });
+    };
 
-    if (this.state.filter === 'all') {
-      return this.state.todos;
-    } else if (this.state.filter === 'active') {
-      return this.state.todos.filter(todo => !todo.completed);
-    } else if (this.state.filter === 'completed') {
-      return this.state.todos.filter(todo => todo.completed);
-    }
+    cancelEdit = (paramTodo, index) => {
+        this.setState((prevState, props) => {
+            let varTodos = prevState.todos;
 
-    return this.state.todos;
+            varTodos.map((todo) => {
+                if (todo === paramTodo) {
+                    prevState.beforeEditCache = todo.title;
+                    todo.editing = false;
+                    todo.title = prevState.beforeEditCache;
+                }
 
-     
+                return todo;
+            });
 
-      
-    
+            return { todos: varTodos };
+        });
+    };
 
-  }
+    todoCompletedCount = () => {
+        return this.state.todos.filter((todo) => todo.completed).length;
+    };
 
-  remaining = () => {
-    return this.state.todos.filter(todo => !todo.completed).length;
-  }
+    clearCompleted = (event) => {
+        event.persist();
 
-  anyRemaining = () => {
-    return this.remaining() !== 0;
-  }
+        this.setState((prevState, props) => {
+            let varTodos = prevState.todos;
 
-  editTodo = (paramTodo, index) => {
-    this.setState((prevState, props) => {
-      let varTodos = prevState.todos;
-      
+            varTodos = varTodos.filter((todo) => !todo.completed);
 
-      varTodos.map(todo => {
-        if(todo === paramTodo){
-          todo.editing = true;
-        }
-        
-        return todo;
-      })
-
-      return { todos : varTodos };
-
-
-    });
-
-  }
-
-  doneEdit = (paramTodo, index, event) => {
-    event.persist();
-
-    this.setState((prevState, props) => {
-      let varTodos = prevState.todos;
-      
-
-      varTodos.map(todo => {
-        if(todo === paramTodo){
-          todo.editing = false;
-          prevState.beforeEditCache = todo.title;
-
-          if(event.target.value.trim().length === 0){
-            todo.title = prevState.beforeEditCache;
-          }
-          else{
-            todo.title = event.target.value;
-            
-          }
-          prevState.beforeEditCache = todo.title;
-
-          
-        }
-        
-        return todo;
-      })
-
-      return { todos : varTodos };
-
-
-    });
-
-  }
-
-  cancelEdit = (paramTodo, index) => {
-    this.setState((prevState, props) => {
-      let varTodos = prevState.todos;
-      
-
-      varTodos.map(todo => {
-        if(todo === paramTodo){          
-          prevState.beforeEditCache = todo.title;
-          todo.editing = false;
-          todo.title = prevState.beforeEditCache;
-        }
-        
-        return todo;
-      })
-
-      return { todos : varTodos };
-
-      
-    });
-
-  }
-
-  clearCompleted = (event) => {
-    event.persist();;
-
-    this.setState((prevState, props) => {
-      let varTodos = prevState.todos;
-      
-
-      varTodos = varTodos.filter((todo) => !todo.completed);
-      
-      
-
-      return { todos : varTodos };
-    });
-
-  }
-
-
-
-  
+            return { todos: varTodos };
+        });
+    };
 }
-
-
 
 export default App;
