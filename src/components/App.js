@@ -1,10 +1,20 @@
-import logo from "./logo.svg";
-import "./App.css";
+import logo from "../logo.svg";
+import "../App.css";
 import React, { Component } from "react";
 import uuid from "react-uuid";
 import { CSSTransitionGroup } from "react-transition-group";
+import ToDoRemainings from "./ToDoRemainings";
+import ToDoItem from "./ToDoItem";
+import ToDoCheckAll from "./ToDoCheckAll";
+import ToDoFilter from "./ToDoFilter";
+import ClearCompleted from "./ClearCompleted";
 
 class App extends Component {
+   /*  constructor(props) {
+        super(props);
+        this.handleClick = this.handleClick.bind(this);
+      } */
+
     render() {
         return (
             <div className="App">
@@ -25,118 +35,30 @@ class App extends Component {
                         transitionLeaveTimeout={300}
                     >
                         {this.todosFiltered().map((todo, index) => (
-                            <div className="todo-item" key={todo.id}>
-                                <div className="todo-item-left">
-                                    <input
-                                        type="checkbox"
-                                        onChange={() => this.checkToDo(todo.id)}
-                                        checked={todo.completed}
-                                    />
-
-                                    {!todo.editing && (
-                                        <div
-                                            className={`todo-item-label
-                          ${todo.completed ? `completed` : ``} `}
-                                            onDoubleClick={() =>
-                                                this.editTodo(todo, index)
-                                            }
-                                        >
-                                            {todo.title}
-                                        </div>
-                                    )}
-
-                                    {todo.editing && (
-                                        <input
-                                            type="text"
-                                            className="todo-item-edit"
-                                            defaultValue={todo.title}
-                                            autoFocus
-                                            onBlur={(event) =>
-                                                this.doneEdit(
-                                                    todo,
-                                                    index,
-                                                    event
-                                                )
-                                            }
-                                            onKeyUp={(event) => {
-                                                if (event.key === "Enter") {
-                                                    this.doneEdit(
-                                                        todo,
-                                                        index,
-                                                        event
-                                                    );
-                                                } else if (
-                                                    event.key === "Escape"
-                                                ) {
-                                                    this.cancelEdit(
-                                                        todo,
-                                                        index,
-                                                        event
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                    )}
-                                </div>
-
-                                <div
-                                    className="remove-item"
-                                    onClick={() => this.deleteTodo(todo.id)}
-                                >
-                                    {" "}
-                                    &times;{" "}
-                                </div>
-                            </div>
+                            <ToDoItem 
+                                key={todo.id}
+                                todo={todo}
+                                index={index}                                
+                                checkToDo={this.checkToDo}
+                                editTodo={this.editTodo}
+                                doneEdit={this.doneEdit}
+                                cancelEdit={this.cancelEdit}
+                                deleteTodo={this.deleteTodo}
+                            />
                         ))}
                     </CSSTransitionGroup>
 
                     <div className="extra-container">
-                        <div>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={!this.anyRemaining()}
-                                    onChange={this.checkAll}
-                                />{" "}
-                                Check All
-                            </label>
-                        </div>
-                        <div> {this.remaining()} items left </div>
+                        <ToDoCheckAll anyRemaining={this.anyRemaining} checkAll={this.checkAll} />
+                        
+                        <ToDoRemainings remaining={this.remaining()}/>
                     </div>
 
                     <div className="extra-container">
-                        <div>
-                            <button
-                                onClick={() => this.updateFilter("all")}
-                                className={
-                                    this.state.filter === "all" ? "active" : ""
-                                }
-                            >
-                                All
-                            </button>
-
-                            <button
-                                onClick={() => this.updateFilter("active")}
-                                className={
-                                    this.state.filter === "active"
-                                        ? "active"
-                                        : ""
-                                }
-                            >
-                                Active
-                            </button>
-
-                            <button
-                                onClick={() => this.updateFilter("completed")}
-                                className={
-                                    this.state.filter === "completed"
-                                        ? "active"
-                                        : ""
-                                }
-                            >
-                                Completed
-                            </button>
-                        </div>
+                        <ToDoFilter 
+                            updateFilter={this.updateFilter}
+                            filter={this.state.filter}
+                        />
 
                         <CSSTransitionGroup
                             transitionName="fade"
@@ -144,15 +66,9 @@ class App extends Component {
                             transitionLeaveTimeout={300}
                         >
                             {this.todoCompletedCount() > 0 && (
-                                <div>
-                                    <button
-                                        onClick={(event) =>
-                                            this.clearCompleted(event)
-                                        }
-                                    >
-                                        Clear Completed
-                                    </button>
-                                </div>
+                                <ClearCompleted 
+                                    clearCompleted={this.clearCompleted}
+                                />
                             )}
                         </CSSTransitionGroup>
                     </div>
